@@ -39,6 +39,7 @@ MAPS_AND_DEPTHS_LABPICS = {
 # shared helpers
 # ---------------------------------------------------------------------------
 
+
 def _crop_resize(maps: dict, hb: int, wb: int) -> dict:
     """crop and resize all array-valued maps to (hb, wb)."""
     h, w = maps["ROI"].shape
@@ -56,13 +57,15 @@ def _crop_resize(maps: dict, hb: int, wb: int) -> dict:
 
     for nm, arr in maps.items():
         if isinstance(arr, np.ndarray):
-            maps[nm] = arr[y0: y0 + hb, x0: x0 + wb]
+            maps[nm] = arr[y0 : y0 + hb, x0 : x0 + wb]
 
     # safety resize if still wrong shape
     for nm, arr in maps.items():
         if isinstance(arr, np.ndarray):
             if arr.shape[0] != hb or arr.shape[1] != wb:
-                maps[nm] = cv2.resize(arr, dsize=(wb, hb), interpolation=cv2.INTER_NEAREST)
+                maps[nm] = cv2.resize(
+                    arr, dsize=(wb, hb), interpolation=cv2.INTER_NEAREST
+                )
 
     return maps
 
@@ -102,6 +105,7 @@ def _to_tensors(maps: dict) -> dict:
 # TransProteus dataset
 # ---------------------------------------------------------------------------
 
+
 class TransProteusDataset(Dataset):
     """
     pytorch dataset for the TransProteus synthetic vessel/content dataset.
@@ -112,7 +116,9 @@ class TransProteusDataset(Dataset):
         augment    : whether to apply colour augmentation during training
     """
 
-    def __init__(self, main_dir: str, img_size=(512, 512), augment: bool = True):
+    def __init__(
+        self, main_dir: str, img_size=(512, 512), augment: bool = True
+    ):
         self.img_size = img_size
         self.augment = augment
         self.ann_list = []
@@ -136,10 +142,18 @@ class TransProteusDataset(Dataset):
                     base[json_key] = fp
 
             base["VesselMask"] = os.path.join(ann_dir, "VesselMask.png")
-            base["VesselOpening_Depth"] = os.path.join(ann_dir, "VesselOpening_Depth.exr")
-            base["EmptyVessel_RGB"] = os.path.join(ann_dir, "EmptyVessel_Frame_0_RGB.jpg")
-            base["EmptyVessel_Normal"] = os.path.join(ann_dir, "EmptyVessel_Frame_0_Normal.exr")
-            base["EmptyVessel_Depth"] = os.path.join(ann_dir, "EmptyVessel_Frame_0_Depth.exr")
+            base["VesselOpening_Depth"] = os.path.join(
+                ann_dir, "VesselOpening_Depth.exr"
+            )
+            base["EmptyVessel_RGB"] = os.path.join(
+                ann_dir, "EmptyVessel_Frame_0_RGB.jpg"
+            )
+            base["EmptyVessel_Normal"] = os.path.join(
+                ann_dir, "EmptyVessel_Frame_0_Normal.exr"
+            )
+            base["EmptyVessel_Depth"] = os.path.join(
+                ann_dir, "EmptyVessel_Frame_0_Depth.exr"
+            )
             base["MainDir"] = ann_dir
 
             for nm in os.listdir(ann_dir):
@@ -148,16 +162,24 @@ class TransProteusDataset(Dataset):
                 fp = os.path.join(ann_dir, nm)
                 entry = base.copy()
                 entry["VesselWithContentRGB"] = fp
-                entry["VesselWithContentNormal"] = fp.replace("_RGB.jpg", "_Normal.exr")
-                entry["VesselWithContentDepth"] = fp.replace("_RGB.jpg", "_Depth.exr")
-                entry["ContentRGB"] = fp.replace("VesselWithContent_", "Content_")
-                entry["ContentNormal"] = entry["VesselWithContentNormal"].replace(
+                entry["VesselWithContentNormal"] = fp.replace(
+                    "_RGB.jpg", "_Normal.exr"
+                )
+                entry["VesselWithContentDepth"] = fp.replace(
+                    "_RGB.jpg", "_Depth.exr"
+                )
+                entry["ContentRGB"] = fp.replace(
                     "VesselWithContent_", "Content_"
                 )
-                entry["ContentDepth"] = entry["VesselWithContentDepth"].replace(
-                    "VesselWithContent_", "Content_"
+                entry["ContentNormal"] = entry[
+                    "VesselWithContentNormal"
+                ].replace("VesselWithContent_", "Content_")
+                entry["ContentDepth"] = entry[
+                    "VesselWithContentDepth"
+                ].replace("VesselWithContent_", "Content_")
+                entry["ContentMask"] = entry["ContentDepth"].replace(
+                    "_Depth.exr", "_Mask.png"
                 )
-                entry["ContentMask"] = entry["ContentDepth"].replace("_Depth.exr", "_Mask.png")
                 self.ann_list.append(entry)
 
         # validate paths up front so errors surface early with a clear message
@@ -187,7 +209,9 @@ class TransProteusDataset(Dataset):
                 continue
             path = ann[nm]
             if ".exr" in path:
-                img = cv2.imread(path, cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
+                img = cv2.imread(
+                    path, cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH
+                )
                 if img is None:
                     raise IOError(f"failed to read {path}")
                 if img.ndim >= 3 and depth == 1:
@@ -200,17 +224,27 @@ class TransProteusDataset(Dataset):
 
         # derived masks
         maps["VesselMask"] = (maps["VesselMask"] > 0).astype(np.float32)
-        maps["VesselOpeningMask"] = (maps["VesselOpening_Depth"] < 5000).astype(np.float32)
-        maps["ContentMaskClean"] = (maps["ContentMask"].sum(2) > 0).astype(np.float32)
+        maps["VesselOpeningMask"] = (
+            maps["VesselOpening_Depth"] < 5000
+        ).astype(np.float32)
+        maps["ContentMaskClean"] = (maps["ContentMask"].sum(2) > 0).astype(
+            np.float32
+        )
         maps["ROI"] = np.ones(maps["VesselMask"].shape, dtype=np.float32)
 
         ignore = maps["ContentMask"][:, :, 2].copy()
         ignore[maps["ContentMask"][:, :, 1] > 0] = 0
-        ignore[(maps["ContentMask"][:, :, 1] * maps["ContentMask"][:, :, 0]) > 0] = 1
+        ignore[
+            (maps["ContentMask"][:, :, 1] * maps["ContentMask"][:, :, 0]) > 0
+        ] = 1
         maps["ROI"][ignore > 0] = 0
 
         # clamp far-away depth values
-        for key in ("EmptyVessel_Depth", "VesselOpening_Depth", "ContentDepth"):
+        for key in (
+            "EmptyVessel_Depth",
+            "VesselOpening_Depth",
+            "ContentDepth",
+        ):
             if key in maps:
                 maps[key][maps[key] > 5000] = 0
 
@@ -226,6 +260,7 @@ class TransProteusDataset(Dataset):
 # LabPics dataset
 # ---------------------------------------------------------------------------
 
+
 class LabPicsDataset(Dataset):
     """
     pytorch dataset for the LabPics real-world lab imagery dataset.
@@ -236,7 +271,9 @@ class LabPicsDataset(Dataset):
         augment    : whether to apply colour/flip augmentation during training
     """
 
-    def __init__(self, main_dir: str, img_size=(512, 512), augment: bool = True):
+    def __init__(
+        self, main_dir: str, img_size=(512, 512), augment: bool = True
+    ):
         self.img_size = img_size
         self.augment = augment
 
@@ -269,18 +306,28 @@ class LabPicsDataset(Dataset):
         vessel_mask = _load_mask(os.path.join(sem_dir, "Transparent.png"))
         filled_mask = _load_mask(os.path.join(sem_dir, "Filled.png"))
         parts_mask = _load_mask(os.path.join(sem_dir, "PartInsideVessel.png"))
-        mat_scattered = _load_mask(os.path.join(sem_dir, "MaterialScattered.png"))
+        mat_scattered = _load_mask(
+            os.path.join(sem_dir, "MaterialScattered.png")
+        )
 
         ignore_path = os.path.join(path, "Ignore.png")
-        ignore = cv2.imread(ignore_path, 0) if os.path.exists(ignore_path) else np.zeros(img.shape[:2], dtype=np.uint8)
+        ignore = (
+            cv2.imread(ignore_path, 0)
+            if os.path.exists(ignore_path)
+            else np.zeros(img.shape[:2], dtype=np.uint8)
+        )
 
         maps = {}
         maps["VesselWithContentRGB"] = img.astype(np.float32)
-        maps["VesselMask"] = ((vessel_mask[:, :, 0] > 0) | (parts_mask[:, :, 0] > 0)).astype(np.float32)
-        maps["ROI"] = (1 - (ignore > 0).astype(np.float32))
+        maps["VesselMask"] = (
+            (vessel_mask[:, :, 0] > 0) | (parts_mask[:, :, 0] > 0)
+        ).astype(np.float32)
+        maps["ROI"] = 1 - (ignore > 0).astype(np.float32)
         maps["ROI"][filled_mask[:, :, 2] > 15] = 0
         maps["ROI"][mat_scattered[:, :, 2] > 0] = 0
-        maps["ContentMaskClean"] = (filled_mask[:, :, 0] > 0).astype(np.float32) * maps["VesselMask"]
+        maps["ContentMaskClean"] = (filled_mask[:, :, 0] > 0).astype(
+            np.float32
+        ) * maps["VesselMask"]
 
         if self.augment:
             if np.random.rand() < 0.5:  # horizontal flip
@@ -299,16 +346,22 @@ class LabPicsDataset(Dataset):
 # collate helper — handles dicts of tensors with potentially different keys
 # ---------------------------------------------------------------------------
 
+
 def collate_maps(batch: list) -> dict:
     """stack a list of map-dicts into a single batched map-dict.
     keys absent in some samples are skipped."""
     keys = batch[0].keys()
-    return {k: torch.stack([s[k] for s in batch]) for k in keys if all(k in s for s in batch)}
+    return {
+        k: torch.stack([s[k] for s in batch])
+        for k in keys
+        if all(k in s for s in batch)
+    }
 
 
 # ---------------------------------------------------------------------------
 # convenience factory
 # ---------------------------------------------------------------------------
+
 
 def make_dataloader(
     datasets,
@@ -343,11 +396,15 @@ def make_dataloader(
         batch_size=batch_size,
         shuffle=shuffle,
         num_workers=num_workers,
-        pin_memory=True,        # faster cpu->gpu transfer
-        persistent_workers=True if num_workers > 0 else False,  # avoid worker restart cost
-        prefetch_factor=2 if num_workers > 0 else None,         # prefetch next batch while gpu trains
+        pin_memory=True,  # faster cpu->gpu transfer
+        persistent_workers=(
+            True if num_workers > 0 else False
+        ),  # avoid worker restart cost
+        prefetch_factor=(
+            2 if num_workers > 0 else None
+        ),  # prefetch next batch while gpu trains
         collate_fn=collate_maps,
-        drop_last=True,         # keeps batch size consistent; avoids batchnorm issues
+        drop_last=True,  # keeps batch size consistent; avoids batchnorm issues
     )
 
 
@@ -358,7 +415,9 @@ def make_dataloader(
 if __name__ == "__main__":
     train_loader = make_dataloader(
         datasets=[
-            TransProteusDataset("/data/TransProteus", img_size=(512, 512), augment=True),
+            TransProteusDataset(
+                "/data/TransProteus", img_size=(512, 512), augment=True
+            ),
             LabPicsDataset("/data/LabPics", img_size=(512, 512), augment=True),
         ],
         batch_size=4,
@@ -366,7 +425,7 @@ if __name__ == "__main__":
     )
 
     for batch in train_loader:
-        rgb = batch["VesselWithContentRGB"]   # (B, 3, H, W) float32 tensor
-        mask = batch["VesselMask"]            # (B, H, W) float32 tensor
+        rgb = batch["VesselWithContentRGB"]  # (B, 3, H, W) float32 tensor
+        mask = batch["VesselMask"]  # (B, H, W) float32 tensor
         print(rgb.shape, mask.shape)
         break
