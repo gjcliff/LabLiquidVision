@@ -300,7 +300,9 @@ class LabPicsDataset(Dataset):
         img = img[:, :, :3]
 
         def _load_mask(fpath):
-            m = cv2.imread(fpath)
+            m = None
+            if os.path.exists(fpath):
+                m = cv2.imread(fpath)
             return m if m is not None else np.zeros(img.shape, dtype=np.uint8)
 
         vessel_mask = _load_mask(os.path.join(sem_dir, "Transparent.png"))

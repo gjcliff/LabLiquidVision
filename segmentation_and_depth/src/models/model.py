@@ -43,7 +43,9 @@ class Net(nn.Module):
 
         # Squeeze ASPP Layer
         self.SqueezeLayers = nn.Sequential(
-            nn.Conv2d(2560, 512, stride=1, kernel_size=3, padding=1, bias=False),
+            nn.Conv2d(
+                2560, 512, stride=1, kernel_size=3, padding=1, bias=False
+            ),
             nn.BatchNorm2d(512),
             nn.ReLU(),
         )
@@ -52,21 +54,27 @@ class Net(nn.Module):
         self.SkipConnections = nn.ModuleList()
         self.SkipConnections.append(
             nn.Sequential(
-                nn.Conv2d(1024, 512, stride=1, kernel_size=1, padding=0, bias=False),
+                nn.Conv2d(
+                    1024, 512, stride=1, kernel_size=1, padding=0, bias=False
+                ),
                 nn.BatchNorm2d(512),
                 nn.ReLU(),
             )
         )
         self.SkipConnections.append(
             nn.Sequential(
-                nn.Conv2d(512, 256, stride=1, kernel_size=1, padding=0, bias=False),
+                nn.Conv2d(
+                    512, 256, stride=1, kernel_size=1, padding=0, bias=False
+                ),
                 nn.BatchNorm2d(256),
                 nn.ReLU(),
             )
         )
         self.SkipConnections.append(
             nn.Sequential(
-                nn.Conv2d(256, 128, stride=1, kernel_size=1, padding=0, bias=False),
+                nn.Conv2d(
+                    256, 128, stride=1, kernel_size=1, padding=0, bias=False
+                ),
                 nn.BatchNorm2d(128),
                 nn.ReLU(),
             )
@@ -75,7 +83,9 @@ class Net(nn.Module):
         self.SqueezeUpsample = nn.ModuleList()
         self.SqueezeUpsample.append(
             nn.Sequential(
-                nn.Conv2d(1024, 512, stride=1, kernel_size=3, padding=1, bias=False),
+                nn.Conv2d(
+                    1024, 512, stride=1, kernel_size=3, padding=1, bias=False
+                ),
                 nn.BatchNorm2d(512),
                 nn.ReLU(),
             )
@@ -83,7 +93,12 @@ class Net(nn.Module):
         self.SqueezeUpsample.append(
             nn.Sequential(
                 nn.Conv2d(
-                    256 + 512, 256, stride=1, kernel_size=3, padding=1, bias=False
+                    256 + 512,
+                    256,
+                    stride=1,
+                    kernel_size=3,
+                    padding=1,
+                    bias=False,
                 ),
                 nn.BatchNorm2d(256),
                 nn.ReLU(),
@@ -92,7 +107,12 @@ class Net(nn.Module):
         self.SqueezeUpsample.append(
             nn.Sequential(
                 nn.Conv2d(
-                    256 + 128, 256, stride=1, kernel_size=3, padding=1, bias=False
+                    256 + 128,
+                    256,
+                    stride=1,
+                    kernel_size=3,
+                    padding=1,
+                    bias=False,
                 ),
                 nn.BatchNorm2d(256),
                 nn.ReLU(),
@@ -147,26 +167,22 @@ class Net(nn.Module):
         RGBMean = [123.68, 116.779, 103.939]
         RGBStd = [65, 65, 65]
 
-        if TrainMode == True:
-            tp = torch.FloatTensor  # Training mode
-        else:
-            tp = torch.half  # Evaluation mode
-            self.half()
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        dtype = torch.float32 if TrainMode else torch.float16
 
+        if not TrainMode:
+            self.half()  # Move model to half precision for eval
         if FreezeBatchNorm_EvalON:
-            self.eval()  # dont update batch
+            self.eval()
 
-        # Convert input to pytorch
-        InpImages = (
-            torch.autograd.Variable(
-                torch.from_numpy(Images.astype(np.float32)), requires_grad=False
-            )
-            .transpose(2, 3)
-            .transpose(1, 2)
-            .type(tp)
-        )
+        # assuming images is (batch, h, w, c) -> we want (batch, c, h, w)
+        # InpImages = torch.from_numpy(Images.float()).to(
+        #     device=device, dtype=dtype
+        # )
+        InpImages = Images
+        # InpImages = InpImages.permute(0, 3, 1, 2)
 
-        # Convert to cuda if needed
+        # convert to cuda if needed
         if UseGPU:
             InpImages = InpImages.cuda()
             self.cuda()
@@ -176,10 +192,14 @@ class Net(nn.Module):
 
         # Normalize image values
         for i in range(len(RGBMean)):
-            InpImages[:, i, :, :] = (InpImages[:, i, :, :] - RGBMean[i]) / RGBStd[i]
+            InpImages[:, i, :, :] = (
+                InpImages[:, i, :, :] - RGBMean[i]
+            ) / RGBStd[i]
         x = InpImages
 
-        SkipConFeatures = []  # Store features map of layers used for skip connection
+        SkipConFeatures = (
+            []
+        )  # Store features map of layers used for skip connection
         x = self.Encoder.conv1(x)
         x = self.Encoder.bn1(x)
         x = self.Encoder.relu(x)
@@ -202,7 +222,10 @@ class Net(nn.Module):
 
         # Upsample features map and combine with layers from encoder using skip connections
         for i in range(len(self.SkipConnections)):
-            sp = (SkipConFeatures[-1 - i].shape[2], SkipConFeatures[-1 - i].shape[3])
+            sp = (
+                SkipConFeatures[-1 - i].shape[2],
+                SkipConFeatures[-1 - i].shape[3],
+            )
             x = nn.functional.interpolate(
                 x, size=sp, mode="bilinear", align_corners=False
             )  # Upsample
@@ -242,7 +265,9 @@ class Net(nn.Module):
                         mode="bilinear",
                         align_corners=False,
                     )  # Resize to original image size
-                Prob = F.softmax(l, dim=1)  # Calculate class probability per pixel
+                Prob = F.softmax(
+                    l, dim=1
+                )  # Calculate class probability per pixel
                 tt, Labels = l.max(1)  # Find label per pixel
                 self.OutProbMask[nm] = Prob
                 self.OutMask[nm] = Labels

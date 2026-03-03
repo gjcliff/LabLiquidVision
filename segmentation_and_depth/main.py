@@ -5,6 +5,7 @@ os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
 
 import src.models.predict_model as predict
 import src.models.train_model as train_model
+import src.models.train_model_new as train_model_new
 from src.models.evaluate_model_new import evaluate
 
 """
@@ -106,7 +107,7 @@ def main():
     if args.mode == "train":
         # start training
         print("Training model")
-        train_model.train(
+        train_model_new.train(
             args.batch_size, args.epochs, args.load_model, args.use_labpics
         )
 

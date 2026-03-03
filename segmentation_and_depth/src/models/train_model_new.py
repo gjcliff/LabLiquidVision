@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 import src.models.model as NET_FCN
 import src.models.loss_functions as LossFunctions
-import src.data.make_dataset as MakeDataset
+import src.data.make_dataset_new as MakeDataset
 
 """
 training loop for the segmentation and depth prediction model.
@@ -94,14 +94,14 @@ def train(batch_size, num_epochs, load_pretrained_model, use_labpics):
             # move everything to device once here — tensors are pinned so this is async
             gt = {k: v.to(device, non_blocking=True) for k, v in gt.items()}
 
+            net.zero_grad()
+
             # --- forward pass ---
             # the loader outputs (B, 3, H, W) for RGB maps,
             # so no manual unsqueeze or numpy conversion is needed
             prd_depth, prd_prob, prd_mask = net(
                 Images=gt["VesselWithContentRGB"]
             )
-
-            net.zero_grad()
 
             cat_loss = {}
 

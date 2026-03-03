@@ -1,5 +1,5 @@
 from torch.utils.data import ConcatDataset
-from src.data.load_data import (
+from src.data.load_data_new import (
     TransProteusDataset,
     LabPicsDataset,
     make_dataloader,
@@ -11,17 +11,17 @@ paths and size constraints are defined here.
 """
 
 TRANS_PROTEUS_FOLDERS = [
-    "data/interim/TranProteus1/Training/LiquidContent",
-    "data/interim/TranProteus2/Training/LiquidContent",
-    "data/interim/TranProteus3/Training/LiquidContent",
-    "data/interim/TranProteus4/Training/LiquidContent",
-    "data/interim/TranProteus5/Training/LiquidContent",
-    "data/interim/TranProteus6/Training/LiquidContent",
-    "data/interim/TranProteus7/Training/LiquidContent",
-    "data/interim/TranProteus8/Training/LiquidContent",
+    "data/TransProteus/TranProteus1/Training/LiquidContent",
+    "data/TransProteus/TranProteus2/Training/LiquidContent",
+    "data/TransProteus/TranProteus3/Training/LiquidContent",
+    "data/TransProteus/TranProteus4/Training/LiquidContent",
+    "data/TransProteus/TranProteus5/Training/LiquidContent",
+    "data/TransProteus/TranProteus6/Training/LiquidContent",
+    "data/TransProteus/TranProteus7/Training/LiquidContent",
+    "data/TransProteus/TranProteus8/Training/LiquidContent",
 ]
 
-LABPICS_FOLDER = "data/interim/LabPics Chemistry/Train"
+LABPICS_FOLDER = "data/LabPics/LabPics Chemistry/Train"
 
 IMG_SIZE = (512, 512)  # fixed spatial size passed to both datasets
 
