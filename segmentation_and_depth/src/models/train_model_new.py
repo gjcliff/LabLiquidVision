@@ -102,6 +102,10 @@ def train(batch_size, num_epochs, load_pretrained_model, use_labpics):
             prd_depth, prd_prob, prd_mask = net(
                 Images=gt["VesselWithContentRGB"]
             )
+            
+            prd_depth = {k: v.to(device) for k, v in prd_depth.items()}
+            prd_prob  = {k: v.to(device) for k, v in prd_prob.items()}
+            prd_mask  = {k: v.to(device) for k, v in prd_mask.items()}
 
             cat_loss = {}
 
