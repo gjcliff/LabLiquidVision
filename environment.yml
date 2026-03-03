@@ -1,15 +1,13 @@
-name: labliquidvision
+name: liquid
 channels:
   - pytorch
   - nvidia
-  - anaconda
-  - defaults
+  - conda-forge
 dependencies:
-  - python=3.9.16
+  - python=3.10
   - ipykernel
-  - pytorch
   - torchvision
-  - pytorch-cuda=11.8
+  - "pytorch=*=*cuda*"
   - pip
   - pip:
     - black
@@ -28,9 +26,3 @@ dependencies:
     - pandas
     - pyyaml
     - ur_rtde
-
-
-
-
-
-

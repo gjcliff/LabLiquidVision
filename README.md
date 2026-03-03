@@ -7,6 +7,17 @@
 ![C++](https://img.shields.io/badge/C++-11-orange) 
 
 
+# Mesoscale
+conda is paid, mamba is free and open source
+
+follow the installation instructions here:
+https://github.com/conda-forge/miniforge
+
+I used mamba instead of conda, it was weird to get it setup, here are their
+docs:
+https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html
+
+
 ## Description
 
 This work explores how computer vision-based liquid detection and handling can be integrated with robotic systems to develop a comprehensive and versatile automation system for cell culture applications. The main idea of the project is visualized in [solution](#solution). It consists of four main [subprojects](#subprojects).

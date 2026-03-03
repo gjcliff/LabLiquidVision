@@ -8,17 +8,17 @@ The paths to the training and testing data and the max and min image size are de
 """
 
 TransProteusFolder = {}
-TransProteusFolder["Liquid1"] = r"data/interim/TranProteus1/Training/LiquidContent"
-TransProteusFolder["Liquid2"] = r"data/interim/TranProteus2/Training/LiquidContent"
-TransProteusFolder["Liquid3"] = r"data/interim/TranProteus3/Training/LiquidContent"
-TransProteusFolder["Liquid4"] = r"data/interim/TranProteus4/Training/LiquidContent"
-TransProteusFolder["Liquid5"] = r"data/interim/TranProteus5/Training/LiquidContent"
-TransProteusFolder["Liquid6"] = r"data/interim/TranProteus6/Training/LiquidContent"
-TransProteusFolder["Liquid7"] = r"data/interim/TranProteus7/Training/LiquidContent"
-TransProteusFolder["Liquid8"] = r"data/interim/TranProteus8/Training/LiquidContent"
+TransProteusFolder["Liquid1"] = r"data/TransProteus/TranProteus1/Training/LiquidContent"
+TransProteusFolder["Liquid2"] = r"data/TransProteus/TranProteus2/Training/LiquidContent"
+TransProteusFolder["Liquid3"] = r"data/TransProteus/TranProteus3/Training/LiquidContent"
+TransProteusFolder["Liquid4"] = r"data/TransProteus/TranProteus4/Training/LiquidContent"
+TransProteusFolder["Liquid5"] = r"data/TransProteus/TranProteus5/Training/LiquidContent"
+TransProteusFolder["Liquid6"] = r"data/TransProteus/TranProteus6/Training/LiquidContent"
+TransProteusFolder["Liquid7"] = r"data/TransProteus/TranProteus7/Training/LiquidContent"
+TransProteusFolder["Liquid8"] = r"data/TransProteus/TranProteus8/Training/LiquidContent"
 
 LabPicsFolder = {}
-LabPicsFolder["LabPics"] = r"data/interim/LabPics Chemistry/Train"
+LabPicsFolder["LabPics"] = r"data/LabPics/LabPics Chemistry/Train"
 
 
 MinSize = 270  # Min image dimension (height or width)
